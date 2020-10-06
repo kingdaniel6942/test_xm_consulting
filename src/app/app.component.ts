@@ -1,7 +1,11 @@
 import { Component } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import {NgbDateStruct, NgbCalendar} from '@ng-bootstrap/ng-bootstrap';
-
+import { RestService} from '../services/rest';
+import * as am4core from '@amcharts/amcharts4/core';
+import * as am4charts from '@amcharts/amcharts4/charts';
+import am4themes_animated from '@amcharts/amcharts4/themes/animated';
+import { ConsultService } from 'src/services/consult';
 
 @Component({
   selector: 'app-root',
@@ -10,51 +14,59 @@ import {NgbDateStruct, NgbCalendar} from '@ng-bootstrap/ng-bootstrap';
 })
 export class AppComponent {
 
-    constructor(private calendar: NgbCalendar) {
+    constructor(private calendar: NgbCalendar, public consultService: ConsultService) {
     }
-    model: NgbDateStruct;
-    date: {year: number, month: number}
+    private myChart: am4charts.XYChart;
 
-    opcionesConsulta:any[] = 
-    [
-      { MetricId: 'Gene', description: 'Generacion Real horaria', Entity: 'Sistema', temp: 'hourly' },
-      { MetricId: 'Gene', description: 'Generacion Real por Recurso horaria', Entity: 'Recurso', temp: 'hourly' },
-      { MetricId: 'Gene', description: 'Generacion por tipo de despacho horaria', Entity: 'Renovabilidad', temp: 'hourly' },
-      { MetricId: 'DemaCome', description: 'Demanda Comercial horaria', Entity: 'Sistema', temp: 'hourly' },
-      { MetricId: 'DemaCome', description: 'Demanda Comercial por Agente horaria', Entity: 'Agente', temp: 'hourly' },
-      { MetricId: 'AporEner', description: 'Aportes Energia diaria', Entity: 'Sistema', temp: 'daily' },
-      { MetricId: 'PrecEscaAct', description: 'Precio de Escasez de Activacion diaria', Entity: 'Sistema', temp: 'daily' },
-      { MetricId: 'ConsCombustibleMBTU', description: 'Consumo Combustible Despacho Central horarios', Entity: 'Recurso', temp: 'hourly' },
-      { MetricId: 'PrecOferDesp', description: 'Precio de Oferta del Despacho horario', Entity: 'Recurso', temp: 'hourly' },
-      { MetricId: 'PrecBolsNaci', description: 'Precio de Bolsa Nacional horario', Entity: 'Sistema', temp: 'hourly' },
-      { MetricId: 'MaxPrecOferNal', description: 'Máximo Precio de Oferta Nacional horario', Entity: 'Sistema', temp: 'hourly' },
-      { MetricId: 'RestAliv', description: 'Restricciones Aliviada horario', Entity: 'Sistema', temp: 'hourly' },
-      { MetricId: 'GeneIdea', description: 'Generacion Ideal sistema horario', Entity: 'Sistema', temp: 'hourly' },
-      { MetricId: 'GeneIdea', description: 'Generacion Ideal recurso horario', Entity: 'Recurso', temp: 'hourly' },
-      { MetricId: 'VoluUtilDiarEner', description: 'Volumen Util Diario', Entity: 'Sistema', temp: 'daily' },
-      { MetricId: 'RemuRealIndiv', description: 'RRID diario', Entity: 'Sistema', temp: 'daily' },
-      { MetricId: 'CapEfecNeta', description: 'Listado de recursos térmicos mensuales', Entity: 'Sistema', temp: 'annual' },
-      { MetricId: 'VentContEner', description: 'Ventas en Contratos Energía horario', Entity: 'Sistema', temp: 'hourly' },
-      { MetricId: 'VentContEner', description: 'Ventas en Contratos Energía por Agente horario', Entity: 'Agente', temp: 'hourly' },
-      { MetricId: 'CompContEner', description: 'Compras en Contrato Energía horario', Entity: 'Sistema', temp: 'hourly' },
-      { MetricId: 'CompContEner', description: 'Compras en Contrato Energía por Agente horario', Entity: 'Agente', temp: 'hourly' },
-      { MetricId: 'CompBolsNaciEner', description: 'Compras en Bolsa Nacional Energía horario', Entity: 'Sistema', temp: 'hourly' },
-      { MetricId: 'CompBolsNaciEner', description: 'Compras en Bolsa Nacional Energía por Agente horario', Entity: 'Agente', temp: 'hourly' },
-      { MetricId: 'PrecPromContRegu', description: 'Precio Promedio Contratos Regulado diario', Entity: 'Sistema', temp: 'daily' },
-      { MetricId: 'PrecPromContNoRegu', description: 'Precio Promedio Contratos No Regulado diario', Entity: 'Sistema', temp: 'daily' }
-    ];
+    modelDate1: NgbDateStruct;
+    date1: {year: number, month: number, day: number}
 
-    optionSelected:any = this.opcionesConsulta[0];
+    modelDate2: NgbDateStruct;
+    date2: {year: number, month: number, day: number}
 
-    async consult(option){
-      console.log(this.optionSelected);
+    optionSelected:any = this.consultService.opcionesConsulta[0];
+
+    async consult(){
+
+      var dateAux1 = new Date(this.modelDate1.year, this.modelDate1.month - 1, this.modelDate1.day);
+      var dateAux2 = new Date(this.modelDate2.year, this.modelDate2.month - 1, this.modelDate2.day);
+      var data = await this.consultService.consult(dateAux1, dateAux2, this.optionSelected);
+
+      let chart = am4core.create("chartdiv", am4charts.XYChart);
+      chart.paddingRight = 20;
+
+      let visits = 10;
+
+      chart.data = data;
+
+      let dateAxis = chart.xAxes.push(new am4charts.DateAxis());
+      dateAxis.renderer.grid.template.location = 0;
+
+      let valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+      valueAxis.tooltip.disabled = true;
+      valueAxis.renderer.minWidth = 35;
+
+      let series = chart.series.push(new am4charts.LineSeries());
+      series.dataFields.dateX = "time";
+      series.dataFields.valueY = "value";
+
+      series.tooltipText = "{valueY.value}";
+      chart.cursor = new am4charts.XYCursor();
+
+      let scrollbarX = new am4charts.XYChartScrollbar();
+      scrollbarX.series.push(series);
+      chart.scrollbarX = scrollbarX;
+      chart.legend = new am4charts.Legend();
+
+      this.myChart = chart;
     }
 
     onChange(value){
       console.log(value);
     }
-    
+
     selectToday() {
-      this.model = this.calendar.getToday();
+      this.modelDate1 = this.calendar.getToday();
+      this.modelDate2 = this.calendar.getToday();
     }
 }
