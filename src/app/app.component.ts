@@ -1,7 +1,5 @@
 import { Component } from '@angular/core';
-import { FormControl } from '@angular/forms';
 import {NgbDateStruct, NgbCalendar} from '@ng-bootstrap/ng-bootstrap';
-import { RestService} from '../services/rest';
 import * as am4core from '@amcharts/amcharts4/core';
 import * as am4charts from '@amcharts/amcharts4/charts';
 import am4themes_animated from '@amcharts/amcharts4/themes/animated';
@@ -26,18 +24,22 @@ export class AppComponent {
 
     optionSelected:any = this.consultService.opcionesConsulta[0];
 
+    data = [0];
+
     async consult(){
+
+      this.data = [];
 
       var dateAux1 = new Date(this.modelDate1.year, this.modelDate1.month - 1, this.modelDate1.day);
       var dateAux2 = new Date(this.modelDate2.year, this.modelDate2.month - 1, this.modelDate2.day);
-      var data = await this.consultService.consult(dateAux1, dateAux2, this.optionSelected);
+      this.data = await this.consultService.consult(dateAux1, dateAux2, this.optionSelected);
 
       let chart = am4core.create("chartdiv", am4charts.XYChart);
       chart.paddingRight = 20;
 
       let visits = 10;
 
-      chart.data = data;
+      chart.data = this.data;
 
       let dateAxis = chart.xAxes.push(new am4charts.DateAxis());
       dateAxis.renderer.grid.template.location = 0;
