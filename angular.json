@@ -28,8 +28,6 @@
               "src/styles.css"
             ],
             "scripts": [
-              // "./node_modules/jquery/dist/jquery.js",
-              // "node_modules/bootstrap/dist/js/bootstrap.js"
             ]
           },
           "configurations": {
@@ -66,7 +64,8 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "xm:build"
+            "browserTarget": "xm:build",
+            "proxyConfig": "proxy.conf.json"
           },
           "configurations": {
             "production": {

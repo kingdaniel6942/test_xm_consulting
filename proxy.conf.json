@@ -1,0 +1,7 @@
+{
+    "/": {
+      "target": "http://servapibi.xm.com.co",
+      "secure": false,
+      "changeOrigin": true
+    }
+  }
