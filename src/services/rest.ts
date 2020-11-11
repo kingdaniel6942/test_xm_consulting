@@ -4,7 +4,9 @@ import { Injectable } from '@angular/core';
 @Injectable()
 export class RestService {
 
-    urlBase = "https://cors-anywhere.herokuapp.com/http://servapibi.xm.com.co/";
+    //urlBase = "https://cors-anywhere.herokuapp.com/http://servapibi.xm.com.co/";
+    //urlBase = "http://servapibi.xm.com.co/";
+    urlBase = "/";
 
     constructor(private http: HttpClient) { }
 
